@@ -101,3 +101,9 @@ npm install express jsonwebtoken bcrypt mssql dotenv cors body-parser
 Frontend:
 Ve al directorio del frontend y ejecuta:
 npm install react react-dom react-router-dom axios tailwindcss
+
+Integrantes:
+Joseph Venegas
+Omar Cifuentes
+Carlos Molina
+Juan Pardo
