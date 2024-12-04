@@ -1,28 +1,25 @@
 const { sql } = require('../config/db');
 
-// Obtención de todas las ventas con sus ítems
 const getSales = async (req, res) => {
   try {
     const salesResult = await sql.query(`
-      SELECT * FROM sales
+      SELECT 
+        s.id AS sale_id,
+        s.client_id,
+        s.user_id,
+        s.total,
+        STRING_AGG(p.nombre, ', ') AS product_names,
+        s.created_at
+      FROM sales s
+      INNER JOIN sale_items si ON s.id = si.sale_id
+      INNER JOIN products p ON si.product_id = p.id
+      GROUP BY s.id, s.client_id, s.user_id, s.total, s.created_at
     `);
 
-    const sales = salesResult.recordset;
-
-    // Obteneción de detalles de cada venta
-    for (let sale of sales) {
-      const itemsResult = await sql.query(`
-        SELECT si.id, si.product_id, si.cantidad, si.subtotal, p.nombre as product_name
-        FROM sale_items si
-        INNER JOIN products p ON si.product_id = p.id
-        WHERE si.sale_id = ${sale.id}
-      `);
-      sale.items = itemsResult.recordset;
-    }
-
-    res.status(200).json(sales);
+    res.status(200).json(salesResult.recordset);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error al obtener las ventas:', error);
+    res.status(500).json({ message: 'Error al obtener las ventas.' });
   }
 };
 
@@ -57,11 +54,15 @@ const createSale = async (req, res) => {
       }
     }
 
-    // Insertar la venta
+    // Antes de insertar en la tabla `sales`, genera el nombre del producto o productos
+    const productNames = items.map((item) => item.producto).join(', '); 
+
+
+    // Insertar la venta                                   
     const saleResult = await sql.query(`
-      INSERT INTO sales (client_id, user_id, total)
+      INSERT INTO sales (client_id, user_id, total, Producto)   
       OUTPUT Inserted.id
-      VALUES (${client_id}, ${user_id}, ${total})
+      VALUES (${client_id}, ${user_id}, ${total}, '${productNames.replace(/'/g, "''")}')
     `);
 
     const saleId = saleResult.recordset[0].id;
@@ -149,4 +150,3 @@ const deleteSale = async (req, res) => {
 };
 
 module.exports = { getSales, createSale, deleteSale, updateSale };
-
