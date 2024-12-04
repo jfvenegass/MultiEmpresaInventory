@@ -37,11 +37,7 @@ function RegisterClient() {
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-96">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <img src="/logo192.png" alt="Logo" className="h-16" />
-        </div>
-        <h2 className="text-2xl font-bold mb-4 text-center">Registrar Nueva Empresa</h2>
+        <h2 className="text-2xl font-bold mb-4">Registrar Nueva Empresa</h2>
         {success && <p className="text-green-500">Empresa registrada exitosamente. Redirigiendo...</p>}
         {error && <p className="text-red-500">{error}</p>}
         <input
