@@ -6,6 +6,9 @@ function Categories() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ nombre: '', descripcion: '' });
   const [editingCategory, setEditingCategory] = useState(null);
+  const [filter, setFilter] = useState('id');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredCategories, setFilteredCategories] = useState([]);
   const role = localStorage.getItem('userRole');
 
   useEffect(() => {
@@ -16,6 +19,7 @@ function Categories() {
     try {
       const response = await apiClient.get('/categories');
       setCategories(response.data);
+      setFilteredCategories(response.data);
     } catch (error) {
       console.error('Error al cargar las categorías:', error);
     } finally {
@@ -62,8 +66,21 @@ function Categories() {
     }
   };
 
+  const handleSearch = () => {
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    const filtered = categories.filter((category) => {
+      if (filter === 'id') {
+        return category.id.toString().includes(lowercasedSearchTerm);
+      } else if (filter === 'nombre') {
+        return category.nombre.toLowerCase().includes(lowercasedSearchTerm);
+      }
+      return false;
+    });
+    setFilteredCategories(filtered);
+  };
+
   if (loading) {
-    return <p>Cargando...</p>;
+    return <div>Cargando...</div>;
   }
 
   return (
@@ -96,6 +113,31 @@ function Categories() {
         </form>
       )}
 
+      <div className="mb-4">
+        <label htmlFor="filter" className="mr-2">Filtrar por:</label>
+        <select
+          id="filter"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="mr-2"
+        >
+          <option value="id">ID</option>
+          <option value="nombre">Nombre</option>
+        </select>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mr-2"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Buscar
+        </button>
+      </div>
+
       <table className="table-auto w-full bg-white shadow-md">
         <thead>
           <tr>
@@ -106,23 +148,17 @@ function Categories() {
           </tr>
         </thead>
         <tbody>
-          {categories.map((category) => (
+          {filteredCategories.map((category) => (
             <tr key={category.id}>
               <td className="border px-4 py-2">{category.id}</td>
               <td className="border px-4 py-2">{category.nombre}</td>
               <td className="border px-4 py-2">{category.descripcion}</td>
               {role === 'admin' && (
                 <td className="border px-4 py-2">
-                  <button
-                    onClick={() => handleEdit(category)}
-                    className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-                  >
+                  <button onClick={() => handleEdit(category)} className="bg-yellow-500 text-white px-2 py-1 rounded mr-2">
                     Editar
                   </button>
-                  <button
-                    onClick={() => handleDelete(category.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded"
-                  >
+                  <button onClick={() => handleDelete(category.id)} className="bg-red-500 text-white px-2 py-1 rounded">
                     Eliminar
                   </button>
                 </td>
